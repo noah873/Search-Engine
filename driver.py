@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from crawler import * # Frontier class and crawlerThread() function imported
 
-def connectDatabase():
+def connectDatabase(): # to import into other files to access database
     client = MongoClient('mongodb://localhost:27017/')
     db = client['search_engine']
     return db
@@ -11,7 +11,6 @@ def main():
     frontier = Frontier(seedURL)
 
     num_targets = 10
-
     crawlerThread(frontier, num_targets)
 
 if __name__ == "__main__":
