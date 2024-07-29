@@ -9,8 +9,8 @@ def connectDatabase(): # to import into other files to access database
 def main():
     seedURL = "https://www.cpp.edu/cba/international-business-marketing/index.shtml"
     frontier = Frontier(seedURL)
-
     num_targets = 10
+    
     crawlerThread(frontier, num_targets)
 
 if __name__ == "__main__":
