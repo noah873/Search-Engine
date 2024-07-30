@@ -98,6 +98,7 @@ def storePage(url, html): # extracts search areas from webpage and stores it in 
     # insert page into MongoDB db.pages
     db = connectDatabase()
     db.pages.insert_one(page)
+    print(f"Stored Page: '{url}'")
     
 def parse(html, url):
     if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
