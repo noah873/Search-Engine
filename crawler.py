@@ -33,6 +33,28 @@ def retrieveURL(url):
         print(f"Error Retrieving URL: '{url}', {e}")
     return None
 
+def target_page(html): # determines if page (URL) contains all 6 classes of Default Header Section Pattern, also checking the Department Name
+    if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
+        return False
+
+    soup = BeautifulSoup(html, 'html.parser')
+    classNames = ['fac-info', 'title-dept', 'emailicon', 'phoneicon', 'locationicon', 'hoursicon']
+    for className in classNames:
+        if not soup.find(class_ = className):
+            return False
+
+    departmentVariations = [
+        "International Business Marketing",
+        "International Business & Marketing",
+        "International Business and Marketing",
+        "IBM"
+    ]
+    for departmentName in departmentVariations:
+        if departmentName in soup.find('span', class_ = 'title-dept').get_text():
+            return True
+
+    return False
+
 def isVisible(text):  # function used by storePage(), returns True if text is visible, otherwise False
     if text.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
         return False
@@ -76,28 +98,6 @@ def storePage(url, html): # extracts search areas from webpage and stores it in 
     # insert page into MongoDB db.pages
     db = connectDatabase()
     db.pages.insert_one(page)
-
-def target_page(html): # determines if page (URL) contains all 6 classes of Default Header Section Pattern, also checking the Department Name
-    if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
-        return False
-
-    soup = BeautifulSoup(html, 'html.parser')
-    classNames = ['fac-info', 'title-dept', 'emailicon', 'phoneicon', 'locationicon', 'hoursicon']
-    for className in classNames:
-        if not soup.find(class_ = className):
-            return False
-
-    departmentVariations = [
-        "International Business Marketing",
-        "International Business & Marketing",
-        "International Business and Marketing",
-        "IBM"
-    ]
-    for departmentName in departmentVariations:
-        if departmentName in soup.find('span', class_ = 'title-dept').get_text():
-            return True
-
-    return False
     
 def parse(html, url):
     if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
