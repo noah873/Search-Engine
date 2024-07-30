@@ -8,8 +8,8 @@ def connectDatabase(): # to import into other files to access database
 
 def main():
     seedURL = "https://www.cpp.edu/cba/international-business-marketing/index.shtml"
-    frontier = Frontier(seedURL)
-    num_targets = 10
+    frontier = Frontier(seedURL) # Frontier class acts like a queue, initialized with just the seed url
+    num_targets = 10 # crawler will run until it has found and stored the information of this many target pages
 
     crawlerThread(frontier, num_targets) # crawls webpages from seed URL and saves areas of search of target pages in MongoDB db.pages
 
