@@ -23,16 +23,16 @@ def lemmatize_tokens(tokens):
     lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
     return lemmatized_tokens
 
-# Remove Punctuation
-def remove_punctuation(tokens):
-    table = str.maketrans('', '', string.punctuation)
+# Remove Punctuation and Quotes
+def remove_punctuation_and_quotes(tokens):
+    table = str.maketrans('', '', string.punctuation + '“”’‘"')
     stripped_tokens = [token.translate(table) for token in tokens]
     return [token for token in stripped_tokens if token]
 
 # Full Text Transformation
 def text_transformation(text):
     tokens = tokenize(text)
-    tokens = remove_punctuation(tokens)  # Ensure punctuation is removed before further processing
+    tokens = remove_punctuation_and_quotes(tokens)  # Ensure punctuation and quotes are removed before further processing
     filtered_tokens = remove_stopwords(tokens)
     lemmatized_tokens = lemmatize_tokens(filtered_tokens)
     return lemmatized_tokens
@@ -66,3 +66,4 @@ if __name__ == "__main__":
     sample_text = "This is a sample sentence for tokenization, stopping, and stemming."
     transformed_text = text_transformation(sample_text)
     print(transformed_text)
+
