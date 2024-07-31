@@ -9,7 +9,7 @@ from nltk.stem import WordNetLemmatizer
 
 # Tokenization
 def tokenize(text):
-    return word_tokenize(text)
+    return word_tokenize(text.lower())  # Convert to lowercase during tokenization
 
 # Stop Words Removal
 def remove_stopwords(tokens):
@@ -17,33 +17,28 @@ def remove_stopwords(tokens):
     filtered_tokens = [token for token in tokens if token.lower() not in stop_words]
     return filtered_tokens
 
-# Lemmatization with Exception Handling for Proper Nouns
+# Lemmatization
 def lemmatize_tokens(tokens):
     lemmatizer = WordNetLemmatizer()
-    lemmatized_tokens = []
-    for token in tokens:
-        if token[0].isupper():  # Assuming proper nouns start with a capital letter
-            lemmatized_tokens.append(token)
-        else:
-            lemmatized_tokens.append(lemmatizer.lemmatize(token))
+    lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
     return lemmatized_tokens
 
-# Remove Punctuation and Quotes
-def remove_punctuation_and_quotes(tokens):
+# Remove Punctuation and Numbers
+def remove_punctuation_and_numbers(tokens):
     table = str.maketrans('', '', string.punctuation + '“”’‘"—–-')
     stripped_tokens = [token.translate(table) for token in tokens]
-    return [token for token in stripped_tokens if token]
+    return [token for token in stripped_tokens if token and not any(char.isdigit() for char in token)]
 
 # Full Text Transformation
 def text_transformation(text):
     tokens = tokenize(text)
-    tokens = remove_punctuation_and_quotes(tokens)  # Ensure punctuation is removed before further processing
+    tokens = remove_punctuation_and_numbers(tokens) 
     filtered_tokens = remove_stopwords(tokens)
     lemmatized_tokens = lemmatize_tokens(filtered_tokens)
     return lemmatized_tokens
 
 def transformPages():
-    from driver import connectDatabase  # enables connection to the shared MongoDB database
+    from driver import connectDatabase 
     db = connectDatabase()
     documents = db.pages.find()
 
