@@ -14,7 +14,7 @@ def main():
 
     crawlerThread(frontier, num_targets) # crawls webpages from seed URL and saves areas of search of target pages in MongoDB db.pages
 
-    transformPages() # performs text transformation on db.pages
+    transformPages() # performs text transformation on db.pages saving output in db.transformed_pages
 
 if __name__ == "__main__":
     main()
