@@ -1,9 +1,11 @@
 import nltk
+import string
 nltk.download('punkt')
 nltk.download('stopwords')
+nltk.download('wordnet')
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
+from nltk.stem import WordNetLemmatizer
 
 # Tokenization
 def tokenize(text):
@@ -15,42 +17,25 @@ def remove_stopwords(tokens):
     filtered_tokens = [token for token in tokens if token.lower() not in stop_words]
     return filtered_tokens
 
-# Stemming
-def stem_tokens(tokens):
-    stemmer = PorterStemmer()
-    stemmed_tokens = [stemmer.stem(token) for token in tokens]
-    return stemmed_tokens
+# Lemmatization
+def lemmatize_tokens(tokens):
+    lemmatizer = WordNetLemmatizer()
+    lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
+    return lemmatized_tokens
+
+# Remove Punctuation
+def remove_punctuation(tokens):
+    table = str.maketrans('', '', string.punctuation)
+    stripped_tokens = [token.translate(table) for token in tokens]
+    return [token for token in stripped_tokens if token]
 
 # Full Text Transformation
 def text_transformation(text):
     tokens = tokenize(text)
+    tokens = remove_punctuation(tokens)  # Ensure punctuation is removed before further processing
     filtered_tokens = remove_stopwords(tokens)
-    stemmed_tokens = stem_tokens(filtered_tokens)
-    return stemmed_tokens
-
-def transformPages():
-    from driver import connectDatabase  # enables connection to the shared MongoDB database
-    db = connectDatabase()
-    documents = db.pages.find()
-
-    for document in documents:
-        blurbs = document['body']
-        accolades = document['sidebar']
-
-        # Transform the text before storing
-        for section in blurbs:
-            section['text'] = text_transformation(section['text'])
-
-        for section in accolades:
-            section['text'] = text_transformation(section['text'])
-
-        transformedDocument = {
-            "url": document['url'],
-            "body": blurbs,
-            "sidebar": accolades
-        }
-
-        db.transformed_pages.insert_one(transformedDocument)
+    lemmatized_tokens = lemmatize_tokens(filtered_tokens)
+    return lemmatized_tokens
 
 # Test the functions (Optional)
 if __name__ == "__main__":
