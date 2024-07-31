@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from crawler import * # Frontier class and crawlerThread() function imported
+from crawler import Frontier, crawlerThread
 from text_transformation import transformPages  # Import text transformation function
 
 def connectDatabase(): # to import into other files to access database
