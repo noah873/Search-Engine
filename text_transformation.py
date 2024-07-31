@@ -29,10 +29,21 @@ def remove_punctuation_and_quotes(tokens):
     stripped_tokens = [token.translate(table) for token in tokens]
     return [token for token in stripped_tokens if token]
 
+# Remove terms containing numbers
+def remove_numbers(tokens):
+    filtered_tokens = [token for token in tokens if not any(char.isdigit() for char in token)]
+    return filtered_tokens
+
+# Convert to lowercase
+def to_lowercase(tokens):
+    return [token.lower() for token in tokens]
+
 # Full Text Transformation
 def text_transformation(text):
     tokens = tokenize(text)
-    tokens = remove_punctuation_and_quotes(tokens)  # Ensure punctuation and quotes are removed before further processing
+    tokens = remove_punctuation_and_quotes(tokens)
+    tokens = remove_numbers(tokens)
+    tokens = to_lowercase(tokens)
     filtered_tokens = remove_stopwords(tokens)
     lemmatized_tokens = lemmatize_tokens(filtered_tokens)
     return lemmatized_tokens
@@ -66,4 +77,3 @@ if __name__ == "__main__":
     sample_text = "This is a sample sentence for tokenization, stopping, and stemming."
     transformed_text = text_transformation(sample_text)
     print(transformed_text)
-
