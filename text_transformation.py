@@ -37,6 +37,30 @@ def text_transformation(text):
     lemmatized_tokens = lemmatize_tokens(filtered_tokens)
     return lemmatized_tokens
 
+def transformPages():
+    from driver import connectDatabase  # enables connection to the shared MongoDB database
+    db = connectDatabase()
+    documents = db.pages.find()
+
+    for document in documents:
+        blurbs = document['body']
+        accolades = document['sidebar']
+
+        # Transform the text before storing
+        for section in blurbs:
+            section['text'] = text_transformation(section['text'])
+
+        for section in accolades:
+            section['text'] = text_transformation(section['text'])
+
+        transformedDocument = {
+            "url": document['url'],
+            "body": blurbs,
+            "sidebar": accolades
+        }
+
+        db.transformed_pages.insert_one(transformedDocument)
+
 # Test the functions (Optional)
 if __name__ == "__main__":
     sample_text = "This is a sample sentence for tokenization, stopping, and stemming."
