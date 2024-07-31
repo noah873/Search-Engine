@@ -25,9 +25,10 @@ def lemmatize_tokens(tokens):
 
 # Remove Punctuation and Quotes
 def remove_punctuation_and_quotes(tokens):
-    table = str.maketrans('', '', string.punctuation + '“”’‘"')
+    table = str.maketrans('', '', string.punctuation + '“”’‘"—–-')
     stripped_tokens = [token.translate(table) for token in tokens]
     return [token for token in stripped_tokens if token]
+
 
 # Remove terms containing numbers
 def remove_numbers(tokens):
