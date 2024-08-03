@@ -2,6 +2,9 @@ from urllib.request import urlopen
 from urllib.parse import urljoin, urlparse, urlunparse
 from bs4 import BeautifulSoup, Comment
 
+from db_connection import connectDatabase
+db = connectDatabase()
+
 class Frontier: # this class serves as a queue of urls for the crawler, keeping track of urls to search and urls that have already been visited
     def __init__(self, seedURL):
         self.urls = {seedURL} # to be used as a queue
@@ -92,9 +95,6 @@ def storePage(url, html): # extracts search areas from webpage and stores it in 
         "body": blurbs,
         "sidebar": accolades
     }
-
-    from driver import connectDatabase  # enables connection to the shared MongoDB database
-    db = connectDatabase()
 
     db.pages.insert_one(page) # insert page into MongoDB db.pages
     print(f"Stored Page: '{url}'")

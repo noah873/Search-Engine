@@ -9,6 +9,9 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
+from db_connection import connectDatabase
+db = connectDatabase()
+
 # Tokenization
 def tokenize(text):
     return word_tokenize(text)
@@ -40,8 +43,6 @@ def text_transformation(text):
     return [token.lower() for token in lemmatized_tokens if not any(char.isdigit() for char in token)]
 
 def transformPages():
-    from db_connection import connectDatabase  
-    db = connectDatabase()
     documents = db.pages.find()
 
     for document in documents:
