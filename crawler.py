@@ -85,19 +85,22 @@ def extractSections(soup, cssClass): # function used by storePage()
 
     return sections
 
-def storePage(url, html): # extracts search areas from webpage and stores it in MongoDB db.pages
-    soup = BeautifulSoup(html, 'html.parser')
-    blurbs = extractSections(soup, 'blurb') # blurbs are rows in the body (center column)
-    accolades = extractSections(soup, 'accolades') # accolades are rows in the sidebar (right column)
+def parseTargetPages(): # extracts search areas from webpage and stores it in MongoDB db.target_pages
+    targetPages = db.crawled_pages.find({"isTarget": True})
 
-    page = {
-        "url": url,
-        "body": blurbs,
-        "sidebar": accolades
-    }
+    for targetPage in targetPages:
+        soup = BeautifulSoup(targetPage["html"], 'html.parser')
+        blurbs = extractSections(soup, 'blurb') # blurbs are rows in the body (center column)
+        accolades = extractSections(soup, 'accolades') # accolades are rows in the sidebar (right column)
 
-    db.pages.insert_one(page) # insert page into MongoDB db.pages
-    print(f"Stored Page: '{url}'")
+        page = {
+            "url": targetPage["url"],
+            "body": blurbs,
+            "sidebar": accolades
+        }
+
+        db.target_pages.insert_one(page) # insert page into MongoDB db.pages
+        print(f"Parsed Target Page: '{targetPage["url"]}'")
     
 def parse(html, url):
     if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
@@ -120,6 +123,20 @@ def parse(html, url):
             urls.add(modifiedURL)
     return urls
 
+def storePage(url, html):
+    page = {
+        "url": url,
+        "html": html,
+        "isTarget": False
+    }
+
+    db.crawled_pages.insert_one(page)  # insert page into MongoDB db.pages
+    print(f"Stored Page: '{url}'")
+
+def markTarget(url):
+    db.crawled_pages.update_one({"url": url}, {"$set": {"isTarget": True}})
+    print(f"Found Target Page: '{url}'")
+
 def crawlerThread(frontier, num_targets):
     targets_found = 0
 
@@ -127,9 +144,10 @@ def crawlerThread(frontier, num_targets):
         url = frontier.nextURL()
         html = retrieveURL(url)
 
+        storePage(url, html)
         if target_page(html):
-            storePage(url, html) # I moved this line down from the pseudocode so only target pages are stored in MongoDB
             targets_found += 1
+            markTarget(url)
 
         if targets_found == num_targets:
             frontier.clear()

@@ -43,7 +43,7 @@ def text_transformation(text):
     return [token.lower() for token in lemmatized_tokens if not any(char.isdigit() for char in token)]
 
 def transformPages():
-    documents = db.pages.find()
+    documents = db.target_pages.find()
 
     for document in documents:
         blurbs = document['body']
@@ -63,6 +63,7 @@ def transformPages():
         }
 
         db.transformed_pages.insert_one(transformedDocument)
+        print(f"Transformed Target Page: '{document['url']}'")
 
 # Test the functions (Optional)
 if __name__ == "__main__":
