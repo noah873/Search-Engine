@@ -2,7 +2,7 @@ from crawler import Frontier, crawlerThread
 from text_transformation import transformPages  # Import text transformation function
 
 def main():
-    seedURL = "https://www.cpp.edu/cba/international-business-marketing/faculty-staff/index.shtml"#"https://www.cpp.edu/cba/international-business-marketing/index.shtml"
+    seedURL = "https://www.cpp.edu/cba/international-business-marketing/index.shtml"
     frontier = Frontier(seedURL) # Frontier class acts like a queue, initialized with just the seed url
     num_targets = 10 # crawler will run until it has found and stored the information of this many target pages
 
