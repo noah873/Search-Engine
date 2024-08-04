@@ -55,6 +55,60 @@ def target_page(html): # determines if page (URL) contains all 6 classes of Defa
             return True
 
     return False
+    
+def parse(html, url):
+    if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
+        return set() # return an empty set because no urls can be gathered
+
+    soup = BeautifulSoup(html, 'html.parser')
+    urls = set()
+    for link in soup.find_all('a', href = True):
+        href = link['href']
+        absoluteURL = urljoin(url, href)  # Use base url for conversion
+        if urlparse(absoluteURL).netloc.endswith('.cpp.edu'): # checks that the url has the domain and TLD of "cpp.edu"
+            # removes all characters from the last forward slash to the end of the URL
+            # i.e. filters the URLs so that each page is on its "homepage" as many pages share target headers
+            parsedURL = urlparse(absoluteURL)
+            path = parsedURL.path
+            index = path.rfind('/') # index of the last forward slash character
+            newPath = path[:index]
+            modifiedURL = urlunparse(parsedURL._replace(path = newPath, fragment = ""))
+
+            urls.add(modifiedURL)
+    return urls
+
+def storePage(url, html):
+    page = {
+        "url": url,
+        "html": html,
+        "isTarget": False
+    }
+
+    db.crawled_pages.insert_one(page)  # insert page into MongoDB db.pages
+    print(f"Stored Page: '{url}'")
+
+def markTargetPage(url):
+    db.crawled_pages.update_one({"url": url}, {"$set": {"isTarget": True}})
+    print(f"Found Target Page: '{url}'")
+
+def crawlerThread(frontier, num_targets):
+    targets_found = 0
+
+    while not frontier.done(): # while there are unvisited URLs in the Frontier object
+        url = frontier.nextURL()
+        html = retrieveURL(url)
+
+        storePage(url, html)
+        if target_page(html):
+            targets_found += 1
+            markTargetPage(url)
+
+        if targets_found == num_targets:
+            frontier.clear()
+        else:
+            for url in parse(html, url): # all links on the page are collected, url is inputted as the base url to absolute relative links
+                if url not in frontier.visitedURLs:
+                    frontier.addURL(url)
 
 def isVisible(text):  # function used by parseTargetPages(), returns True if text is visible, otherwise False
     if text.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
@@ -101,57 +155,3 @@ def parseTargetPages(): # extracts search areas from webpage and stores it in Mo
 
         db.target_pages.insert_one(page) # insert page into MongoDB db.pages
         print(f"Parsed Target Page: '{targetPage["url"]}'")
-    
-def parse(html, url):
-    if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
-        return set() # return an empty set because no urls can be gathered
-
-    soup = BeautifulSoup(html, 'html.parser')
-    urls = set()
-    for link in soup.find_all('a', href = True):
-        href = link['href']
-        absoluteURL = urljoin(url, href)  # Use base url for conversion
-        if urlparse(absoluteURL).netloc.endswith('.cpp.edu'): # checks that the url has the domain and TLD of "cpp.edu"
-            # removes all characters from the last forward slash to the end of the URL
-            # i.e. filters the URLs so that each page is on its "homepage" as many pages share target headers
-            parsedURL = urlparse(absoluteURL)
-            path = parsedURL.path
-            index = path.rfind('/') # index of the last forward slash character
-            newPath = path[:index]
-            modifiedURL = urlunparse(parsedURL._replace(path = newPath, fragment = ""))
-
-            urls.add(modifiedURL)
-    return urls
-
-def storePage(url, html):
-    page = {
-        "url": url,
-        "html": html,
-        "isTarget": False
-    }
-
-    db.crawled_pages.insert_one(page)  # insert page into MongoDB db.pages
-    print(f"Stored Page: '{url}'")
-
-def markTarget(url):
-    db.crawled_pages.update_one({"url": url}, {"$set": {"isTarget": True}})
-    print(f"Found Target Page: '{url}'")
-
-def crawlerThread(frontier, num_targets):
-    targets_found = 0
-
-    while not frontier.done(): # while there are unvisited URLs in the Frontier object
-        url = frontier.nextURL()
-        html = retrieveURL(url)
-
-        storePage(url, html)
-        if target_page(html):
-            targets_found += 1
-            markTarget(url)
-
-        if targets_found == num_targets:
-            frontier.clear()
-        else:
-            for url in parse(html, url): # all links on the page are collected, url is inputted as the base url to absolute relative links
-                if url not in frontier.visitedURLs:
-                    frontier.addURL(url)
