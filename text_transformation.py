@@ -51,9 +51,11 @@ def transformPages():
 
         # Transform the text before storing
         for section in blurbs:
+            section['title'] = text_transformation(section['title'])
             section['text'] = text_transformation(section['text'])
 
         for section in accolades:
+            section['title'] = text_transformation(section['title'])
             section['text'] = text_transformation(section['text'])
 
         transformedDocument = {
