@@ -56,21 +56,21 @@ def target_page(html): # determines if page (URL) contains all 6 classes of Defa
 
     return False
 
-def isVisible(text):  # function used by storePage(), returns True if text is visible, otherwise False
+def isVisible(text):  # function used by parseTargetPages(), returns True if text is visible, otherwise False
     if text.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
         return False
     if isinstance(text, Comment):
         return False
     return True
 
-def extractText(html): # function used by storePage()
+def extractText(html): # function used by parseTargetPages()
     soup = BeautifulSoup(html, 'html.parser')
     text = soup.findAll(text=True)  # creates array of text
     visibleText = filter(isVisible, text)  # filters text so only visible text remains
     return " ".join(
         text.strip() for text in visibleText)  # removes newline chars with split() and rejoins all visible text
 
-def extractSections(soup, cssClass): # function used by storePage()
+def extractSections(soup, cssClass): # function used by parseTargetPages()
     sections = []
 
     for section in soup.find_all(class_ = cssClass):
