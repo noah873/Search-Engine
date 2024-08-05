@@ -121,8 +121,7 @@ def extractText(html): # function used by parseTargetPages()
     soup = BeautifulSoup(html, 'html.parser')
     text = soup.findAll(text=True)  # creates array of text
     visibleText = filter(isVisible, text)  # filters text so only visible text remains
-    return " ".join(
-        text.strip() for text in visibleText)  # removes newline chars with split() and rejoins all visible text
+    return " ".join(text.strip() for text in visibleText)  # removes newline chars with split() and rejoins all visible text
 
 def extractSections(soup, cssClass): # function used by parseTargetPages()
     sections = []
