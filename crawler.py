@@ -50,23 +50,11 @@ def target_page(url, html): # determines if page (URL) contains all 6 classes of
         "International Business and Marketing",
         "IBM"
     ]
-    rightDepartment = False
 
     for departmentName in departmentVariations:
         if departmentName in soup.find('span', class_ = 'title-dept').get_text():
-            rightDepartment = True
-
-    if rightDepartment:
-        # Manually ensure "canonical" url, selecting the tab we want: ABOUT ME
-        index = url.rfind('/')
-        canonicalURL = url[:index + 1]
-        canonicalURL += "index.shtml"
-
-        targetPages = db.crawled_pages.find({"isTarget": True}, {"url": 1, "_id": 0})
-        targetPages = {page["url"] for page in targetPages}
-        if canonicalURL not in targetPages:
-            db.crawled_pages.update_one({"url": url}, {"$set": {"url": canonicalURL, "isTarget": True}})
-            print(f"Found Target Page: '{canonicalURL}'")
+            db.crawled_pages.update_one({"url": url}, {"$set": {"isTarget": True}})
+            print(f"Found Target Page: '{url}'")
 
             return True
 
