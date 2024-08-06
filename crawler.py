@@ -7,14 +7,14 @@ db = connectDatabase()
 
 class Frontier: # this class serves as a queue of urls for the crawler, keeping track of urls to search and urls that have already been visited
     def __init__(self, seedURL):
-        self.urls = {seedURL} # to be used as a queue
+        self.urls = [seedURL] # to be used as a queue
         self.visitedURLs = set()
 
     def addURL(self, url): # adds urls to the "bottom" of the queue
-        self.urls.add(url)
+        self.urls.append(url)
 
     def nextURL(self): # pops url from the "top" of the queue, adds it to visitedURLs
-        url = self.urls.pop()
+        url = self.urls.pop(0)
         self.visitedURLs.add(url)
         return url
 
@@ -34,7 +34,7 @@ def retrieveURL(url):
         print(f"Error Retrieving URL: '{url}', {e}")
     return None
 
-def target_page(html): # determines if page (URL) contains all 6 classes of Default Header Section Pattern, also checking the Department Name
+def target_page(url, html): # determines if page (URL) contains all 6 classes of Default Header Section Pattern, also checking the Department Name
     if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
         return False
 
@@ -50,31 +50,41 @@ def target_page(html): # determines if page (URL) contains all 6 classes of Defa
         "International Business and Marketing",
         "IBM"
     ]
+    rightDepartment = False
+
     for departmentName in departmentVariations:
         if departmentName in soup.find('span', class_ = 'title-dept').get_text():
+            rightDepartment = True
+
+    if rightDepartment:
+        # Manually ensure "canonical" url, selecting the tab we want: ABOUT ME
+        index = url.rfind('/')
+        canonicalURL = url[:index + 1]
+        canonicalURL += "index.shtml"
+
+        targetPages = db.crawled_pages.find({"isTarget": True}, {"url": 1, "_id": 0})
+        targetPages = {page["url"] for page in targetPages}
+        if canonicalURL not in targetPages:
+            db.crawled_pages.update_one({"url": url}, {"$set": {"url": canonicalURL, "isTarget": True}})
+            print(f"Found Target Page: '{canonicalURL}'")
+
             return True
 
     return False
     
 def parse(html, url):
     if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
-        return set() # return an empty set because no urls can be gathered
+        return [] # return an empty array because no urls can be gathered
 
     soup = BeautifulSoup(html, 'html.parser')
-    urls = set()
+    urls = []
     for link in soup.find_all('a', href = True):
         href = link['href']
         absoluteURL = urljoin(url, href)  # Use base url for conversion
         if urlparse(absoluteURL).netloc.endswith('.cpp.edu'): # checks that the url has the domain and TLD of "cpp.edu"
-            # removes all characters from the last forward slash to the end of the URL
-            # i.e. filters the URLs so that each page is on its "homepage" as many pages share target headers
-            parsedURL = urlparse(absoluteURL)
-            path = parsedURL.path
-            index = path.rfind('/') # index of the last forward slash character
-            newPath = path[:index]
-            modifiedURL = urlunparse(parsedURL._replace(path = newPath, fragment = ""))
+            if absoluteURL not in urls:
+                urls.append(absoluteURL)
 
-            urls.add(modifiedURL)
     return urls
 
 def storePage(url, html):
@@ -83,13 +93,11 @@ def storePage(url, html):
         "html": html,
         "isTarget": False
     }
-
-    db.crawled_pages.insert_one(page)  # insert page into MongoDB db.pages
-    print(f"Stored Page: '{url}'")
-
-def markTargetPage(url):
-    db.crawled_pages.update_one({"url": url}, {"$set": {"isTarget": True}})
-    print(f"Found Target Page: '{url}'")
+    try:
+        db.crawled_pages.insert_one(page)  # insert page into MongoDB db.pages
+        print(f"Stored Page: '{url}'")
+    except Exception as e:
+        print(f"Error Storing Page: '{url}', {e}")
 
 def crawlerThread(frontier, num_targets):
     targets_found = 0
@@ -99,9 +107,8 @@ def crawlerThread(frontier, num_targets):
         html = retrieveURL(url)
 
         storePage(url, html)
-        if target_page(html):
+        if target_page(url, html): # marks page document as target
             targets_found += 1
-            markTargetPage(url)
 
         if targets_found == num_targets:
             frontier.clear()
