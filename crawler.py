@@ -81,9 +81,8 @@ def parse(html, url):
     for link in soup.find_all('a', href = True):
         href = link['href']
         absoluteURL = urljoin(url, href)  # Use base url for conversion
-        if urlparse(absoluteURL).netloc.endswith('.cpp.edu'): # checks that the url has the domain and TLD of "cpp.edu"
-            if absoluteURL not in urls:
-                urls.append(absoluteURL)
+        if absoluteURL not in urls:
+            urls.append(absoluteURL)
 
     return urls
 
