@@ -13,10 +13,7 @@ def text_transformation(text):
         tokenCounts = X.toarray().flatten()
         uniqueTokens = vectorizer.get_feature_names_out()
 
-        tokens = []
-        for uniqueToken, tokenCount in zip(uniqueTokens, tokenCounts): # create a list with duplicates
-            for i in range(tokenCount):
-                tokens.append(uniqueToken)
+        tokens = [uniqueToken for uniqueToken, tokenCount in zip(uniqueTokens, tokenCounts) for i in range(tokenCount)] # create a list with duplicates
 
         stemmedTokens = [stemmer.stem(token) for token in tokens] # apply stemming
 
