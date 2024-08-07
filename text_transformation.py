@@ -1,46 +1,32 @@
-import nltk
-import string
-
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
-
-from nltk.tokenize import word_tokenize
+from sklearn.feature_extraction.text import CountVectorizer
 from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-
+from nltk.stem import PorterStemmer
 from db_connection import connectDatabase
+
 db = connectDatabase()
 
 # Tokenization
 def tokenize(text):
-    return word_tokenize(text)
+    vectorizer = CountVectorizer()
+    analyzer = vectorizer.build_analyzer()
+    return analyzer(text)
 
 # Stop Words Removal
 def remove_stopwords(tokens):
     stop_words = set(stopwords.words('english'))
-    filtered_tokens = [token for token in tokens if token.lower() not in stop_words]
-    return filtered_tokens
+    return [token for token in tokens if token.lower() not in stop_words]
 
-# Lemmatization
-def lemmatize_tokens(tokens):
-    lemmatizer = WordNetLemmatizer()
-    lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
-    return lemmatized_tokens
-
-# Remove Punctuation and Quotes
-def remove_punctuation_and_quotes(tokens):
-    table = str.maketrans('', '', string.punctuation + '“”’‘"—–-')
-    stripped_tokens = [token.translate(table) for token in tokens]
-    return [token for token in stripped_tokens if token]
+# Stemming
+def stem_tokens(tokens):
+    stemmer = PorterStemmer()
+    return [stemmer.stem(token) for token in tokens]
 
 # Full Text Transformation
 def text_transformation(text):
-    tokens = tokenize(text)
-    tokens = remove_punctuation_and_quotes(tokens)  
-    filtered_tokens = remove_stopwords(tokens)
-    lemmatized_tokens = lemmatize_tokens(filtered_tokens)
-    return [token.lower() for token in lemmatized_tokens if not any(char.isdigit() for char in token)]
+    tokens = tokenize(text)  # Tokenization
+    tokens_without_stopwords = remove_stopwords(tokens)  # Stop words removal
+    stemmed_tokens = stem_tokens(tokens_without_stopwords)  # Stemming
+    return [token.lower() for token in stemmed_tokens if not any(char.isdigit() for char in token)]  # Convert to lowercase and remove numbers
 
 def transformPages():
     documents = db.target_pages.find()
@@ -71,5 +57,5 @@ def transformPages():
 if __name__ == "__main__":
     sample_text = "This is a sample sentence for tokenization, stopping, and stemming."
     transformed_text = text_transformation(sample_text)
-    print(transformed_text)
+    print(transformed_text)  # Output: ['sampl', 'sentenc', 'token', 'stop', 'stem']
 
