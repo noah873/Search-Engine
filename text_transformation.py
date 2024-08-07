@@ -51,7 +51,6 @@ def text_transformation(text):
     return final_tokens
 
 def transformPages():
-    # Retrieve documents from the target pages collection
     documents = db.target_pages.find()
 
     for document in documents:
