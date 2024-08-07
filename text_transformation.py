@@ -13,7 +13,7 @@ def text_transformation(text):
         tokens = vectorizer.get_feature_names_out()
         lemmatizedTokens = [lemmatizer.lemmatize(token) for token in tokens]
     except Exception as e:
-        print(f'Error Transforming Text: {e}')
+        print(f"Error Transforming Text: '{text}', {e}")
         lemmatizedTokens = []
 
     return lemmatizedTokens
