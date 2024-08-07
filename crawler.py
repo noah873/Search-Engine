@@ -75,13 +75,12 @@ def parse(html, url):
     return urls
 
 def storePage(url, html):
-    page = {
-        "url": url,
-        "html": html,
-        "isTarget": False
-    }
     try:
-        db.crawled_pages.insert_one(page)  # insert page into MongoDB db.pages
+        db.crawled_pages.insert_one({ # insert page into MongoDB db.pages
+            "url": url,
+            "html": html,
+            "isTarget": False
+        })
         print(f"Stored Page: '{url}'")
     except Exception as e:
         print(f"Error Storing Page: '{url}', {e}")
