@@ -1,18 +1,20 @@
 from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
-from nltk.stem import LancasterStemmer
+from nltk.stem import WordNetLemmatizer, LancasterStemmer
 from db_connection import connectDatabase
 import nltk
 import re
 
+nltk.download('wordnet')
 nltk.download('punkt')
 
+# Connect to the database
 db = connectDatabase()
 
 # Custom Stemmed CountVectorizer
 class StemmedCountVectorizer(CountVectorizer):
     def build_analyzer(self):
         analyzer = super(StemmedCountVectorizer, self).build_analyzer()
-        stemmer = LancasterStemmer()  # Using Lancaster Stemmer for less aggressive stemming
+        stemmer = LancasterStemmer()  
         return lambda doc: (stemmer.stem(token) for token in analyzer(doc))
 
 # Tokenization using scikit-learn
@@ -26,6 +28,12 @@ def remove_stopwords(tokens):
     stop_words = ENGLISH_STOP_WORDS
     return [token for token in tokens if token.lower() not in stop_words]
 
+# Lemmatization 
+def lemmatize_tokens(tokens):
+    lemmatizer = WordNetLemmatizer()
+    lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
+    return lemmatized_tokens
+
 # Stemming using scikit-learn's custom vectorizer 
 def stem_tokens(tokens):
     stemmed_vectorizer = StemmedCountVectorizer()
@@ -37,12 +45,13 @@ def text_transformation(text):
     text = re.sub(r'[^\w\s]', '', text).lower()
     tokens = tokenize(text)
     filtered_tokens = remove_stopwords(tokens)
-    stemmed_tokens = stem_tokens(filtered_tokens)
-    final_tokens = [token for token in stemmed_tokens if not any(char.isdigit() for char in token)]
+    lemmatized_tokens = lemmatize_tokens(filtered_tokens)
+    final_tokens = [token for token in lemmatized_tokens if not any(char.isdigit() for char in token)]
 
     return final_tokens
 
 def transformPages():
+    # Retrieve documents from the target pages collection
     documents = db.target_pages.find()
 
     for document in documents:
@@ -70,6 +79,6 @@ def transformPages():
 if __name__ == "__main__":
     sample_text = "This is a sample sentence for tokenization, stopping, and stemming."
     transformed_text = text_transformation(sample_text)
-    print(transformed_text)  # Output: ['sampl', 'sentenc', 'token', 'stop', 'stem']
-
+    print("Transformed Sample Text:", transformed_text)
+    
 
