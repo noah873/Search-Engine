@@ -39,11 +39,9 @@ def parseTargetPages(): # extracts search areas from webpage and stores it in Mo
         blurbs = extractSections(soup, 'blurb') # blurbs are rows in the body (center column)
         accolades = extractSections(soup, 'accolades') # accolades are rows in the sidebar (right column)
 
-        page = {
+        db.target_pages.insert_one({ # insert page into MongoDB db.target_pages
             "url": targetPage["url"],
             "body": blurbs,
             "sidebar": accolades
-        }
-
-        db.target_pages.insert_one(page) # insert page into MongoDB db.pages
+        })
         print(f"Parsed Target Page: '{targetPage["url"]}'")
