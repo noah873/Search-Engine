@@ -38,11 +38,9 @@ def transformPages():
             section['title'] = text_transformation(section['title'])
             section['text'] = text_transformation(section['text'])
 
-        transformedDocument = {
+        db.transformed_pages.insert_one({
             "url": document['url'],
             "body": blurbs,
             "sidebar": accolades
-        }
-
-        db.transformed_pages.insert_one(transformedDocument)
+        })
         print(f"Transformed Target Page: '{document['url']}'")
