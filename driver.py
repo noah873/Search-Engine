@@ -1,4 +1,5 @@
-from crawler import Frontier, crawlerThread, parseTargetPages
+from crawler import Frontier, crawlerThread
+from parse_target_pages import parseTargetPages
 from text_transformation import transformPages  # Import text transformation function
 
 def main():
