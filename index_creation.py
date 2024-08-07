@@ -1,6 +1,5 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from db_connection import connectDatabase
-from text_transformation import text_transformation
 
 # Connect to the database
 db = connectDatabase()
