@@ -1,17 +1,18 @@
 from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
-from sklearn.base import BaseEstimator, TransformerMixin
+from nltk.stem import LancasterStemmer
 from db_connection import connectDatabase
 import nltk
-from nltk.stem import PorterStemmer
+import re
 
 nltk.download('punkt')
-nltk.download('stopwords')
+
+db = connectDatabase()
 
 # Custom Stemmed CountVectorizer
 class StemmedCountVectorizer(CountVectorizer):
     def build_analyzer(self):
         analyzer = super(StemmedCountVectorizer, self).build_analyzer()
-        stemmer = PorterStemmer()
+        stemmer = LancasterStemmer()  # Using Lancaster Stemmer for less aggressive stemming
         return lambda doc: (stemmer.stem(token) for token in analyzer(doc))
 
 # Tokenization using scikit-learn
@@ -25,7 +26,7 @@ def remove_stopwords(tokens):
     stop_words = ENGLISH_STOP_WORDS
     return [token for token in tokens if token.lower() not in stop_words]
 
-# Stemming using scikit-learn's custom vectorizer
+# Stemming using scikit-learn's custom vectorizer 
 def stem_tokens(tokens):
     stemmed_vectorizer = StemmedCountVectorizer()
     stemmed_tokens = list(stemmed_vectorizer.build_analyzer()(" ".join(tokens)))
@@ -33,13 +34,15 @@ def stem_tokens(tokens):
 
 # Full Text Transformation
 def text_transformation(text):
+    text = re.sub(r'[^\w\s]', '', text).lower()
     tokens = tokenize(text)
     filtered_tokens = remove_stopwords(tokens)
     stemmed_tokens = stem_tokens(filtered_tokens)
-    return [token.lower() for token in stemmed_tokens if not any(char.isdigit() for char in token)]
+    final_tokens = [token for token in stemmed_tokens if not any(char.isdigit() for char in token)]
+
+    return final_tokens
 
 def transformPages():
-    db = connectDatabase()
     documents = db.target_pages.find()
 
     for document in documents:
