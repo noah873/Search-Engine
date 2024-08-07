@@ -76,7 +76,7 @@ def parse(html, url):
 
 def storePage(url, html):
     try:
-        db.crawled_pages.insert_one({ # insert page into MongoDB db.pages
+        db.crawled_pages.insert_one({ # insert page into MongoDB db.crawled_pages
             "url": url,
             "html": html,
             "isTarget": False
