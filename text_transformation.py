@@ -1,0 +1,83 @@
+from sklearn.feature_extraction.text import CountVectorizer, ENGLISH_STOP_WORDS
+from nltk.stem import WordNetLemmatizer, LancasterStemmer
+from db_connection import connectDatabase
+import nltk
+import re
+
+nltk.download('wordnet')
+nltk.download('punkt')
+
+# Connect to the database
+db = connectDatabase()
+
+# Custom Stemmed CountVectorizer
+class StemmedCountVectorizer(CountVectorizer):
+    def build_analyzer(self):
+        analyzer = super(StemmedCountVectorizer, self).build_analyzer()
+        stemmer = LancasterStemmer()  
+        return lambda doc: (stemmer.stem(token) for token in analyzer(doc))
+
+# Tokenization using scikit-learn
+def tokenize(text):
+    vectorizer = CountVectorizer()
+    analyzer = vectorizer.build_analyzer()
+    return analyzer(text)
+
+# Stop Words Removal using scikit-learn
+def remove_stopwords(tokens):
+    stop_words = ENGLISH_STOP_WORDS
+    return [token for token in tokens if token.lower() not in stop_words]
+
+# Lemmatization 
+def lemmatize_tokens(tokens):
+    lemmatizer = WordNetLemmatizer()
+    lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
+    return lemmatized_tokens
+
+# Stemming using scikit-learn's custom vectorizer 
+def stem_tokens(tokens):
+    stemmed_vectorizer = StemmedCountVectorizer()
+    stemmed_tokens = list(stemmed_vectorizer.build_analyzer()(" ".join(tokens)))
+    return stemmed_tokens
+
+# Full Text Transformation
+def text_transformation(text):
+    text = re.sub(r'[^\w\s]', '', text).lower()
+    tokens = tokenize(text)
+    filtered_tokens = remove_stopwords(tokens)
+    lemmatized_tokens = lemmatize_tokens(filtered_tokens)
+    final_tokens = [token for token in lemmatized_tokens if not any(char.isdigit() for char in token)]
+
+    return final_tokens
+
+def transformPages():
+    documents = db.target_pages.find()
+
+    for document in documents:
+        blurbs = document['body']
+        accolades = document['sidebar']
+
+        for section in blurbs:
+            section['title'] = text_transformation(section['title'])
+            section['text'] = text_transformation(section['text'])
+
+        for section in accolades:
+            section['title'] = text_transformation(section['title'])
+            section['text'] = text_transformation(section['text'])
+
+        transformedDocument = {
+            "url": document['url'],
+            "body": blurbs,
+            "sidebar": accolades
+        }
+
+        db.transformed_pages.insert_one(transformedDocument)
+        print(f"Transformed Target Page: '{document['url']}'")
+
+# Test the functions (Optional)
+if __name__ == "__main__":
+    sample_text = "This is a sample sentence for tokenization, stopping, and stemming."
+    transformed_text = text_transformation(sample_text)
+    print("Transformed Sample Text:", transformed_text)
+    
+
