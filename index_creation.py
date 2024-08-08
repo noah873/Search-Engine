@@ -40,7 +40,7 @@ def create_index():
     })
 
     print(f"Created TF-IDF Matrix with shape: {X.shape}")
-    print("Index data stored in MongoDB")
+    print("Index data successfully stored in MongoDB")
 
 if __name__ == "__main__":
     create_index()
