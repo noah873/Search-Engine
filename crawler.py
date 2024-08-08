@@ -43,8 +43,9 @@ def target_page(url, html): # determines if page (URL) contains all 6 classes of
     for className in classNames:
         if not soup.find(class_ = className):
             return False
-    
-    if "International Business" or "IBM" in soup.find('span', class_ = 'title-dept').get_text(): # check department name of faculty
+
+    departmentNameVariations = ["International Business", "IBM"]
+    if any(departmentName in soup.find('span', class_ = 'title-dept').get_text() for departmentName in departmentNameVariations): # check department name of faculty
         db.crawled_pages.update_one({"url": url}, {"$set": {"isTarget": True}})
         print(f"Found Target Page: '{url}'")
         return True
