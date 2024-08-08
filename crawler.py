@@ -46,7 +46,7 @@ def target_page(html): # determines if page contains all 6 classes of Default He
     departmentNameVariations = ["International Business", "IBM"]
     if any(departmentName in soup.find('span', class_ = 'title-dept').get_text() for departmentName in departmentNameVariations): # check department name of faculty
         db.crawled_pages.update_one({"html": html}, {"$set": {"isTarget": True}})
-        print(f"Found Target Page: '{db.crawled_pages.find({"html": html}, {'_id': 0, 'url': 1})}'")
+        print(f"Found Target Page: '{db.crawled_pages.find_one({"html": html})['url']}'")
         return True
 
     return False
