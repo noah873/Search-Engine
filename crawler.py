@@ -23,7 +23,6 @@ class Frontier: # this class serves as a queue of urls for the crawler, keeping 
 
     def clear(self):
         self.urls.clear()
-        self.visitedURLs.clear()
 
 def retrieveURL(url):
     try:
@@ -34,7 +33,7 @@ def retrieveURL(url):
         print(f"Error Retrieving URL: '{url}', {e}")
     return None
 
-def target_page(url, html): # determines if page (URL) contains all 6 classes of Default Header Section Pattern, also checking the Department Name
+def target_page(html): # determines if page contains all 6 classes of Default Header Section Pattern, also checking the Department Name
     if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
         return False
 
@@ -46,15 +45,17 @@ def target_page(url, html): # determines if page (URL) contains all 6 classes of
 
     departmentNameVariations = ["International Business", "IBM"]
     if any(departmentName in soup.find('span', class_ = 'title-dept').get_text() for departmentName in departmentNameVariations): # check department name of faculty
-        db.crawled_pages.update_one({"url": url}, {"$set": {"isTarget": True}})
-        print(f"Found Target Page: '{url}'")
+        db.crawled_pages.update_one({"html": html}, {"$set": {"isTarget": True}})
+        print(f"Found Target Page: '{db.crawled_pages.find({"html": html}, {'_id': 0, 'url': 1})}'")
         return True
 
     return False
-    
-def parse(html, url):
+
+def parse(html):
     if html is None: # works with the error handling output from retrieveURL (HTTP Error 404, etc.)
         return [] # return an empty array because no urls can be gathered
+
+    url = db.crawled_pages.find_one({'html': html})['url']
 
     soup = BeautifulSoup(html, 'html.parser')
     urls = []
@@ -85,12 +86,12 @@ def crawlerThread(frontier, num_targets):
         html = retrieveURL(url)
 
         storePage(url, html)
-        if target_page(url, html): # marks page document as target
+        if target_page(html): # marks page document as target
             targets_found += 1
 
         if targets_found == num_targets:
             frontier.clear()
         else:
-            for url in parse(html, url): # all links on the page are collected, url is inputted as the base url to absolute relative links
+            for url in parse(html): # all links on the page are collected, base url is used to make relative links absolute
                 if url not in frontier.visitedURLs:
                     frontier.addURL(url)
