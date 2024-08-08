@@ -27,8 +27,8 @@ def transformPages():
     documents = db.target_pages.find()
 
     for document in documents:
-        blurbs = document['body']
-        accolades = document['sidebar']
+        blurbs = document['blurbs']
+        accolades = document['accolades']
 
         for section in blurbs:
             section['title'] = text_transformation(section['title'])
@@ -40,7 +40,7 @@ def transformPages():
 
         db.transformed_pages.insert_one({
             "url": document['url'],
-            "body": blurbs,
-            "sidebar": accolades
+            "blurbs": blurbs,
+            "accolades": accolades
         })
         print(f"Transformed Target Page: '{document['url']}'")
