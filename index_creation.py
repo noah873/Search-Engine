@@ -16,10 +16,10 @@ def create_index():
 
         # Extracting and combining all transformed text content from body and sidebar
         faculty_info = []
-        for section in page['body']:
+        for section in page['blurbs']:
             faculty_info.extend(section['title'])
             faculty_info.extend(section['text'])
-        for section in page['sidebar']:
+        for section in page['accolades']:
             faculty_info.extend(section['title'])
             faculty_info.extend(section['text'])
 
