@@ -7,9 +7,7 @@ def createInverseIndex():
     pages = db.transformed_pages.find()
 
     for page in pages:
-        terms = page['tokens']
-
-        termCounts = dict(Counter(terms))
+        termCounts = Counter(page['tokens'])
 
         for term, frequency in termCounts.items():
             db.inverse_index.update_one(
