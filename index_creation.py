@@ -14,7 +14,16 @@ def create_index():
     for page in transformed_pages:
         url = page['url']
 
-        transformed_faculty_info = " ".join(page['tokens'])
+        # Extracting and combining all transformed text content from body and sidebar
+        faculty_info = []
+        for section in page['blurbs']:
+            faculty_info.extend(section['title'])
+            faculty_info.extend(section['text'])
+        for section in page['accolades']:
+            faculty_info.extend(section['title'])
+            faculty_info.extend(section['text'])
+
+        transformed_faculty_info = " ".join(faculty_info)
 
         corpus.append(transformed_faculty_info)
         urls.append(url)
@@ -23,15 +32,21 @@ def create_index():
     vectorizer = TfidfVectorizer()
     X = vectorizer.fit_transform(corpus)
 
-    # Save the TF-IDF matrix and feature names to MongoDB
+    # Extract IDF values
+    idf_values = vectorizer.idf_
+
+    # Save the TF-IDF matrix, IDF values, and feature names to MongoDB
     db.index_data.insert_one({
         "tfidf_matrix": X.toarray().tolist(),
+        "idf_values": idf_values.tolist(),
         "feature_names": vectorizer.get_feature_names_out().tolist(),
         "urls": urls
     })
 
     print(f"Created TF-IDF Matrix with shape: {X.shape}")
     print("Index data successfully stored in MongoDB")
+
+    return vectorizer, X  # Return vectorizer and TF-IDF matrix for further use if needed
 
 if __name__ == "__main__":
     create_index()
