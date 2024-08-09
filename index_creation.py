@@ -14,16 +14,7 @@ def create_index():
     for page in transformed_pages:
         url = page['url']
 
-        # Extracting and combining all transformed text content from body and sidebar
-        faculty_info = []
-        for section in page['blurbs']:
-            faculty_info.extend(section['title'])
-            faculty_info.extend(section['text'])
-        for section in page['accolades']:
-            faculty_info.extend(section['title'])
-            faculty_info.extend(section['text'])
-
-        transformed_faculty_info = " ".join(faculty_info)
+        transformed_faculty_info = " ".join(page['tokens'])
 
         corpus.append(transformed_faculty_info)
         urls.append(url)
