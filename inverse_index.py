@@ -7,15 +7,7 @@ def createInverseIndex():
     pages = db.transformed_pages.find()
 
     for page in pages:
-        terms = []
-
-        for section in page['blurbs']:
-            terms += section['title']
-            terms += section['text']
-
-        for section in page['accolades']:
-            terms += section['title']
-            terms += section['text']
+        terms = page['tokens']
 
         termCounts = dict(Counter(terms))
 

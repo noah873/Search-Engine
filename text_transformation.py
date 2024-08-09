@@ -27,20 +27,18 @@ def transformPages():
     documents = db.target_pages.find()
 
     for document in documents:
-        blurbs = document['blurbs']
-        accolades = document['accolades']
+        tokens = []
 
-        for section in blurbs:
-            section['title'] = text_transformation(section['title'])
-            section['text'] = text_transformation(section['text'])
+        for section in document['blurbs']:
+            tokens += text_transformation(section['title'])
+            tokens += text_transformation(section['text'])
 
-        for section in accolades:
-            section['title'] = text_transformation(section['title'])
-            section['text'] = text_transformation(section['text'])
+        for section in document['accolades']:
+            tokens += text_transformation(section['title'])
+            tokens += text_transformation(section['text'])
 
         db.transformed_pages.insert_one({
             "url": document['url'],
-            "blurbs": blurbs,
-            "accolades": accolades
+            "tokens": tokens
         })
         print(f"Transformed Target Page: '{document['url']}'")
